@@ -191,18 +191,18 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 // Create the file system structure table
                 Statement stmt = conn.createStatement();
 
-                stmt.execute("CREATE TABLE "
+                stmt.execute("CREATE TABLE IF NOT EXISTS "
                         + getFileSysTableName()
-                        + " (FileId IDENTITY, DirId INTEGER, FileName VARCHAR(255) NOT NULL, FileSize BIGINT,"
+                        + " (FileId IDENTITY, DirId INTEGER, FileName VARCHAR_IGNORECASE(255) NOT NULL, FileSize BIGINT,"
                         + "CreateDate BIGINT, ModifyDate BIGINT, AccessDate BIGINT, ChangeDate BIGINT, ReadOnly BOOLEAN, Archived BOOLEAN, Directory BOOLEAN,"
                         + "SystemFile BOOLEAN, Hidden BOOLEAN, IsSymLink BOOLEAN, Uid INTEGER, Gid INTEGER, Mode INTEGER, Deleted BOOLEAN NOT NULL DEFAULT FALSE, "
                         + "PRIMARY KEY (FileId));");
 
                 // Create various indexes
-                stmt.execute("CREATE UNIQUE INDEX FileSysIFileDirId ON " + getFileSysTableName() + " (FileName,DirId);");
-                stmt.execute("CREATE INDEX FileSysIDirId ON " + getFileSysTableName() + " (DirId);");
-                stmt.execute("CREATE INDEX FileSysIDir ON " + getFileSysTableName() + " (DirId,Directory);");
-                stmt.execute("CREATE UNIQUE INDEX FileSysIFileDirIdDir ON " + getFileSysTableName() + " (FileName,DirId,Directory);");
+                stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS FileSysIFileDirId ON " + getFileSysTableName() + " (FileName,DirId);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS FileSysIDirId ON " + getFileSysTableName() + " (DirId);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS FileSysIDir ON " + getFileSysTableName() + " (DirId,Directory);");
+                stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS FileSysIFileDirIdDir ON " + getFileSysTableName() + " (FileName,DirId,Directory);");
 
                 stmt.close();
 
@@ -217,13 +217,13 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 // Create the file streams table
                 Statement stmt = conn.createStatement();
 
-                stmt.execute("CREATE TABLE "
+                stmt.execute("CREATE TABLE IF NOT EXISTS "
                         + getStreamsTableName()
-                        + " (StreamId IDENTITY, FileId INTEGER NOT NULL, StreamName VARCHAR(255) NOT NULL, StreamSize BIGINT,"
+                        + " (StreamId IDENTITY, FileId INTEGER NOT NULL, StreamName VARCHAR_IGNORECASE(255) NOT NULL, StreamSize BIGINT,"
                         + "CreateDate BIGINT, ModifyDate BIGINT, AccessDate BIGINT, PRIMARY KEY (StreamId));");
 
                 // Create various indexes
-                stmt.execute("CREATE INDEX StreamsIFileId ON " + getStreamsTableName() + " (FileId);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS StreamsIFileId ON " + getStreamsTableName() + " (FileId);");
 
                 stmt.close();
 
@@ -238,7 +238,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 // Create the retention period data table
                 Statement stmt = conn.createStatement();
 
-                stmt.execute("CREATE TABLE " + getRetentionTableName()
+                stmt.execute("CREATE TABLE IF NOT EXISTS " + getRetentionTableName()
                         + " (FileId INTEGER NOT NULL, StartDate TIMESTAMP, EndDate TIMESTAMP,"
                         + "PurgeFlag TINYINT(1), PRIMARY KEY (FileId));");
                 stmt.close();
@@ -254,12 +254,12 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 // Create the request queue data table
                 Statement stmt = conn.createStatement();
 
-                stmt.execute("CREATE TABLE "
+                stmt.execute("CREATE TABLE IF NOT EXISTS "
                         + getQueueTableName()
                         + " (FileId INTEGER NOT NULL, StreamId INTEGER NOT NULL, ReqType SMALLINT,"
                         + "SeqNo SERIAL, TempFile TEXT, VirtualPath TEXT, QueuedAt TIMESTAMP, Attribs VARCHAR(512), PRIMARY KEY (SeqNo));");
-                stmt.execute("CREATE INDEX QueueIFileId ON " + getQueueTableName() + " (FileId);");
-                stmt.execute("CREATE INDEX QueueIFileIdType ON " + getQueueTableName() + " (FileId, ReqType);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS QueueIFileId ON " + getQueueTableName() + " (FileId);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS QueueIFileIdType ON " + getQueueTableName() + " (FileId, ReqType);");
 
                 stmt.close();
 
@@ -274,7 +274,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 // Create the transaction request queue data table
                 Statement stmt = conn.createStatement();
 
-                stmt.execute("CREATE TABLE " + getTransactionTableName()
+                stmt.execute("CREATE TABLE IF NOT EXISTS " + getTransactionTableName()
                         + " (FileId INTEGER NOT NULL, StreamId INTEGER NOT NULL,"
                         + "TranId INTEGER NOT NULL, ReqType SMALLINT, TempFile TEXT, VirtualPath TEXT, QueuedAt TIMESTAMP,"
                         + "Attribs VARCHAR(512), PRIMARY KEY (FileId,StreamId,TranId));");
@@ -292,13 +292,13 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 // Create the file data table
                 Statement stmt = conn.createStatement();
 
-                stmt.execute("CREATE TABLE "
+                stmt.execute("CREATE TABLE IF NOT EXISTS "
                         + getDataTableName()
                         + " (FileId INTEGER NOT NULL, StreamId INTEGER NOT NULL, FragNo INTEGER, FragLen INTEGER, Data BLOB, JarFile BOOLEAN, JarId INTEGER);");
 
-                stmt.execute("CREATE INDEX DataIFileStreamId ON " + getDataTableName() + " (FileId,StreamId);");
-                stmt.execute("CREATE INDEX DataIFileId ON " + getDataTableName() + " (FileId);");
-                stmt.execute("CREATE INDEX DataIFileIdFrag ON " + getDataTableName() + " (FileId,FragNo);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS DataIFileStreamId ON " + getDataTableName() + " (FileId,StreamId);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS DataIFileId ON " + getDataTableName() + " (FileId);");
+                stmt.execute("CREATE INDEX IF NOT EXISTS DataIFileIdFrag ON " + getDataTableName() + " (FileId,FragNo);");
 
                 stmt.close();
 
@@ -313,7 +313,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 // Create the Jar file data table
                 Statement stmt = conn.createStatement();
 
-                stmt.execute("CREATE TABLE " + getJarDataTableName()
+                stmt.execute("CREATE TABLE IF NOT EXISTS " + getJarDataTableName()
                         + " (JarId IDENTITY, Data BLOB, PRIMARY KEY (JarId));");
 
                 stmt.close();
@@ -330,7 +330,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 // Create the file id/object id mapping table
                 Statement stmt = conn.createStatement();
 
-                stmt.execute("CREATE TABLE "
+                stmt.execute("CREATE TABLE IF NOT EXISTS "
                         + getObjectIdTableName()
                         + " (FileId INTEGER NOT NULL, StreamId INTEGER NOT NULL, ObjectId VARCHAR(128), PRIMARY KEY (FileId,StreamId))");
 
@@ -347,7 +347,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 // Create the symbolic links table
                 Statement stmt = conn.createStatement();
 
-                stmt.execute("CREATE TABLE " + getSymLinksTableName()
+                stmt.execute("CREATE TABLE IF NOT EXISTS " + getSymLinksTableName()
                         + " (FileId INTEGER NOT NULL PRIMARY KEY, SymLink VARCHAR(8192))");
 
                 stmt.close();
@@ -634,6 +634,10 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
     public int createStreamRecord(String sname, int fid)
             throws DBException {
 
+        // Make sure NTFS streams are enabled
+        if ( isNTFSEnabled() == false)
+            throw new DBException("NTFS streams feature not enabled");
+
         // Create a new file stream attached to the specified file
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -804,6 +808,10 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
      */
     public void deleteStreamRecord(int fid, int stid, boolean markOnly)
             throws DBException {
+
+        // Make sure NTFS streams are enabled
+        if ( isNTFSEnabled() == false)
+            return;
 
         // Delete a file stream from the database, or mark the stream as deleted
         Connection conn = null;
@@ -1384,6 +1392,10 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
     public StreamInfo getStreamInformation(int fid, int stid, StreamInfoLevel infoLevel)
             throws DBException {
 
+        // Make sure NTFS streams are enabled
+        if ( isNTFSEnabled() == false)
+            return null;
+
         // Create a SQL select for the required stream information
         StringBuilder sql = new StringBuilder(128);
 
@@ -1502,6 +1514,10 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
      */
     public StreamInfoList getStreamsList(int fid, StreamInfoLevel infoLevel)
             throws DBException {
+
+        // Make sure NTFS streams are enabled
+        if ( isNTFSEnabled() == false)
+            return null;
 
         // Create a SQL select for the required stream information
         StringBuilder sql = new StringBuilder(128);
