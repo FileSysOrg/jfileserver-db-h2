@@ -17,6 +17,7 @@
 
 package org.filesys.server.filesys.db.h2;
 
+import org.filesys.debug.Debug;
 import org.filesys.server.filesys.FileAttribute;
 import org.filesys.server.filesys.FileInfo;
 import org.filesys.server.filesys.FileType;
@@ -57,7 +58,7 @@ public class H2SQLSearchContext extends DBSearchContext {
         try {
 
             // Return the next file details or loop until a match is found if a complex wildcard filter has been specified
-            while (m_rs.next()) {
+            while (m_rs !=null && m_rs.next()) {
 
                 // Get the file name for the next file
                 info.setFileId(m_rs.getInt("FileId"));
@@ -83,22 +84,22 @@ public class H2SQLSearchContext extends DBSearchContext {
                 // Build the file attributes flags
                 int attr = 0;
 
-                if (m_rs.getBoolean("ReadOnly") == true)
+                if (m_rs.getBoolean("ReadOnly"))
                     attr += FileAttribute.ReadOnly;
 
-                if (m_rs.getBoolean("SystemFile") == true)
+                if (m_rs.getBoolean("SystemFile"))
                     attr += FileAttribute.System;
 
-                if (m_rs.getBoolean("Hidden") == true)
+                if (m_rs.getBoolean("Hidden"))
                     attr += FileAttribute.Hidden;
 
-                if (m_rs.getBoolean("Directory") == true) {
+                if (m_rs.getBoolean("Directory")) {
                     attr += FileAttribute.Directory;
                     info.setFileType(FileType.Directory);
                 } else
                     info.setFileType(FileType.RegularFile);
 
-                if (m_rs.getBoolean("Archived") == true)
+                if (m_rs.getBoolean("Archived"))
                     attr += FileAttribute.Archive;
 
                 // Check if files should be marked as offline
@@ -119,16 +120,17 @@ public class H2SQLSearchContext extends DBSearchContext {
                 info.setMode(m_rs.getInt("Mode"));
 
                 // Check if the file is a symbolic link
-                if (m_rs.getBoolean("IsSymLink") == true)
+                if (m_rs.getBoolean("IsSymLink"))
                     info.setFileType(FileType.SymbolicLink);
 
                 // Check if there is a complex wildcard filter
                 if (m_filter == null
-                        || m_filter.matchesPattern(info.getFileName()) == true)
+                        || m_filter.matchesPattern(info.getFileName()))
                     return true;
             }
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
+            Debug.println("[H2] SearchContext -> nextFileInfo error: ");
+            Debug.println(ex);
         }
 
         // No more files
@@ -157,11 +159,13 @@ public class H2SQLSearchContext extends DBSearchContext {
 
                 // Check if there is a complex wildcard filter
                 if (m_filter == null
-                        || m_filter.matchesPattern(fileName) == true)
+                        || m_filter.matchesPattern(fileName))
                     return fileName;
             }
         }
         catch (SQLException ex) {
+            Debug.println("[H2] SearchContext -> nextFileName error: ");
+            Debug.println(ex);
         }
 
         // No more files
@@ -183,8 +187,9 @@ public class H2SQLSearchContext extends DBSearchContext {
                 if (stmt != null)
                     stmt.close();
                 m_rs.close();
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
+                Debug.println("[H2] SearchContext -> closeSearch error: ");
+                Debug.println(ex);
             }
 
             m_rs = null;
