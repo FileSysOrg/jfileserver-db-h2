@@ -3711,18 +3711,18 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
     /**
      * Log the message and full stack trace for debugging purposes
      *
-     * @param message
-     * @param ex
+     * @param message String
+     * @param ex Exception
      */
     private void logException(String message, Exception ex) {
-        // TODO: Later if needed enable this flag check to control logging exception, this config is related to fileserver.xml <Debug />
-        // if (Debug.EnableError && hasDebug()) {}
 
         // Print message about method name and useful info
-        Debug.println(message);
+        if ( hasDebug())
+            Debug.println(message);
 
         // Print Full stack trace
-        Debug.println(ex);
+        if ( Debug.hasDumpStackTraces())
+            Debug.println(ex);
     }
 
     private void closeConnection(Connection connection) {
