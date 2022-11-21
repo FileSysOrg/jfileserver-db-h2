@@ -19,34 +19,10 @@ package org.filesys.server.filesys.db.h2;
 
 import org.filesys.debug.Debug;
 import org.filesys.server.config.InvalidConfigurationException;
-import org.filesys.server.filesys.FileAttribute;
-import org.filesys.server.filesys.FileExistsException;
-import org.filesys.server.filesys.FileInfo;
-import org.filesys.server.filesys.FileName;
-import org.filesys.server.filesys.FileOpenParams;
-import org.filesys.server.filesys.FileStatus;
-import org.filesys.server.filesys.FileType;
+import org.filesys.server.filesys.*;
 import org.filesys.server.filesys.cache.FileState;
-import org.filesys.server.filesys.db.DBDataDetails;
-import org.filesys.server.filesys.db.DBDataDetailsList;
-import org.filesys.server.filesys.db.DBDataInterface;
-import org.filesys.server.filesys.db.DBDeviceContext;
-import org.filesys.server.filesys.db.DBException;
-import org.filesys.server.filesys.db.DBFileInfo;
-import org.filesys.server.filesys.db.DBObjectIdInterface;
-import org.filesys.server.filesys.db.DBQueueInterface;
-import org.filesys.server.filesys.db.DBSearchContext;
-import org.filesys.server.filesys.db.JdbcDBInterface;
-import org.filesys.server.filesys.db.ObjectIdFileLoader;
-import org.filesys.server.filesys.db.RetentionDetails;
-import org.filesys.server.filesys.loader.CachedFileInfo;
-import org.filesys.server.filesys.loader.FileRequest;
-import org.filesys.server.filesys.loader.FileRequestQueue;
-import org.filesys.server.filesys.loader.FileSegment;
-import org.filesys.server.filesys.loader.FileSegmentInfo;
-import org.filesys.server.filesys.loader.MultipleFileRequest;
-import org.filesys.server.filesys.loader.SegmentInfo;
-import org.filesys.server.filesys.loader.SingleFileRequest;
+import org.filesys.server.filesys.db.*;
+import org.filesys.server.filesys.loader.*;
 import org.filesys.smb.server.ntfs.StreamInfo;
 import org.filesys.smb.server.ntfs.StreamInfoList;
 import org.filesys.util.MemorySize;
@@ -63,6 +39,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -231,10 +211,10 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 try (Statement stmt = conn.createStatement()) {
                     stmt.execute("CREATE TABLE IF NOT EXISTS "
                             + getFileSysTableName()
-                            + " (FileId IDENTITY, DirId INTEGER, FileName VARCHAR_IGNORECASE(255) NOT NULL, FileSize BIGINT,"
+                            + " (FileId IDENTITY, DirId BIGINT, FileName VARCHAR_IGNORECASE(255) NOT NULL, FileSize BIGINT,"
                             + "CreateDate BIGINT, ModifyDate BIGINT, AccessDate BIGINT, ChangeDate BIGINT, ReadOnly BOOLEAN, Archived BOOLEAN, Directory BOOLEAN,"
                             + "SystemFile BOOLEAN, Hidden BOOLEAN, IsSymLink BOOLEAN, Uid INTEGER, Gid INTEGER, Mode INTEGER, Deleted BOOLEAN NOT NULL DEFAULT FALSE, "
-                            + "PRIMARY KEY (FileId));");
+                            + "Encrypted BOOLEAN NOT NULL DEFAULT FALSE, PRIMARY KEY (FileId));");
 
                     // Create various indexes
                     stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS FileSysIFileDirId ON " + getFileSysTableName() + " (FileName,DirId);");
@@ -255,7 +235,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 try (Statement stmt = conn.createStatement()) {
                     stmt.execute("CREATE TABLE IF NOT EXISTS "
                             + getStreamsTableName()
-                            + " (StreamId IDENTITY, FileId INTEGER NOT NULL, StreamName VARCHAR_IGNORECASE(255) NOT NULL, StreamSize BIGINT,"
+                            + " (StreamId IDENTITY, FileId BIGINT NOT NULL, StreamName VARCHAR_IGNORECASE(255) NOT NULL, StreamSize BIGINT,"
                             + "CreateDate BIGINT, ModifyDate BIGINT, AccessDate BIGINT, PRIMARY KEY (StreamId));");
 
                     // Create various indexes
@@ -273,7 +253,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 // Create the retention period data table
                 try (Statement stmt = conn.createStatement()) {
                     stmt.execute("CREATE TABLE IF NOT EXISTS " + getRetentionTableName()
-                            + " (FileId INTEGER NOT NULL, StartDate TIMESTAMP, EndDate TIMESTAMP,"
+                            + " (FileId BIGINT NOT NULL, StartDate TIMESTAMP, EndDate TIMESTAMP,"
                             + "PurgeFlag TINYINT(1), PRIMARY KEY (FileId));");
                 }
                 // DEBUG
@@ -288,7 +268,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 try (Statement stmt = conn.createStatement()) {
                     stmt.execute("CREATE TABLE IF NOT EXISTS "
                             + getQueueTableName()
-                            + " (FileId INTEGER NOT NULL, StreamId INTEGER NOT NULL, ReqType SMALLINT,"
+                            + " (FileId BIGINT NOT NULL, StreamId BIGINT NOT NULL, ReqType SMALLINT,"
                             + "SeqNo SERIAL, TempFile TEXT, VirtualPath TEXT, QueuedAt TIMESTAMP, Attribs VARCHAR(512), PRIMARY KEY (SeqNo));");
                     stmt.execute("CREATE INDEX IF NOT EXISTS QueueIFileId ON " + getQueueTableName() + " (FileId);");
                     stmt.execute("CREATE INDEX IF NOT EXISTS QueueIFileIdType ON " + getQueueTableName() + " (FileId, ReqType);");
@@ -304,7 +284,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 // Create the transaction request queue data table
                 try (Statement stmt = conn.createStatement()) {
                     stmt.execute("CREATE TABLE IF NOT EXISTS " + getTransactionTableName()
-                            + " (FileId INTEGER NOT NULL, StreamId INTEGER NOT NULL,"
+                            + " (FileId BIGINT NOT NULL, StreamId BIGINT NOT NULL,"
                             + "TranId INTEGER NOT NULL, ReqType SMALLINT, TempFile TEXT, VirtualPath TEXT, QueuedAt TIMESTAMP,"
                             + "Attribs VARCHAR(512), PRIMARY KEY (FileId,StreamId,TranId));");
                 }
@@ -321,7 +301,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 try (Statement stmt = conn.createStatement()) {
                     stmt.execute("CREATE TABLE IF NOT EXISTS "
                             + getDataTableName()
-                            + " (FileId INTEGER NOT NULL, StreamId INTEGER NOT NULL, FragNo INTEGER, FragLen INTEGER, Data BLOB, JarFile BOOLEAN, JarId INTEGER);");
+                            + " (FileId BIGINT NOT NULL, StreamId BIGINT NOT NULL, FragNo INTEGER, FragLen INTEGER, Data BLOB, JarFile BOOLEAN, JarId INTEGER);");
 
                     stmt.execute("CREATE INDEX IF NOT EXISTS DataIFileStreamId ON " + getDataTableName() + " (FileId,StreamId);");
                     stmt.execute("CREATE INDEX IF NOT EXISTS DataIFileId ON " + getDataTableName() + " (FileId);");
@@ -355,7 +335,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 try (Statement stmt = conn.createStatement()) {
                     stmt.execute("CREATE TABLE IF NOT EXISTS "
                             + getObjectIdTableName()
-                            + " (FileId INTEGER NOT NULL, StreamId INTEGER NOT NULL, ObjectId VARCHAR(128), PRIMARY KEY (FileId,StreamId))");
+                            + " (FileId BIGINT NOT NULL, StreamId BIGINT NOT NULL, ObjectId VARCHAR(128), PRIMARY KEY (FileId,StreamId))");
                 }
 
                 // DEBUG
@@ -369,7 +349,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 // Create the symbolic links table
                 try (Statement stmt = conn.createStatement()) {
                     stmt.execute("CREATE TABLE IF NOT EXISTS " + getSymLinksTableName()
-                            + " (FileId INTEGER NOT NULL PRIMARY KEY, SymLink VARCHAR(8192))");
+                            + " (FileId BIGINT NOT NULL PRIMARY KEY, SymLink VARCHAR(8192))");
                 }
 
                 // DEBUG
@@ -499,31 +479,68 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 }
             }
 
-            // Check if a file or folder record should be created
-            boolean dirRec = params.isDirectory();
-
             // Get a statement
             long timeNow = System.currentTimeMillis();
+            String symLinkName = null;
 
             try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO "
                     + getFileSysTableName()
-                    + "(FileName,CreateDate,ModifyDate,AccessDate,DirId,Directory,ReadOnly,Archived,SystemFile,Hidden,FileSize,Gid,Uid,Mode,IsSymLink)"
-                    + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
+                    + "(FileName,CreateDate,ModifyDate,AccessDate,FileSize,DirId,Directory,ReadOnly,Archived,SystemFile,Hidden,Gid,Uid,Mode,IsSymLink,Encrypted)"
+                    + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
                 pstmt.setString(1, chkFileName);
-                pstmt.setLong(2, timeNow);
-                pstmt.setLong(3, timeNow);
-                pstmt.setLong(4, timeNow);
-                pstmt.setInt(5, dirId);
-                pstmt.setBoolean(6, dirRec);
-                pstmt.setBoolean(7, FileAttribute.hasAttribute(params.getAttributes(), FileAttribute.ReadOnly));
-                pstmt.setBoolean(8, FileAttribute.hasAttribute(params.getAttributes(), FileAttribute.Archive));
-                pstmt.setBoolean(9, FileAttribute.hasAttribute(params.getAttributes(), FileAttribute.System));
-                pstmt.setBoolean(10, FileAttribute.hasAttribute(params.getAttributes(), FileAttribute.Hidden));
-                pstmt.setInt(11, 0);
 
-                pstmt.setInt(12, params.hasGid() ? params.getGid() : 0);
-                pstmt.setInt(13, params.hasUid() ? params.getUid() : 0);
-                pstmt.setInt(14, params.hasMode() ? params.getMode() : 0);
+                if ( params instanceof PopulateDBFileOpenParams) {
+                    PopulateDBFileOpenParams dbParams = (PopulateDBFileOpenParams) params;
+
+                    pstmt.setLong(2, dbParams.getCreationDateTime());
+                    pstmt.setLong(3, dbParams.getModificationTimestamp());
+                    pstmt.setLong(4, dbParams.getAccessTimestamp());
+
+                    pstmt.setLong( 5, dbParams.getFileSize());
+
+                    pstmt.setBoolean(16, dbParams.isEncrypted());
+
+                    // Set the Unix fields
+                    pstmt.setInt(12, dbParams.hasGid() ? dbParams.getGid() : 0);
+                    pstmt.setInt(13, dbParams.hasUid() ? dbParams.getUid() : 0);
+                    pstmt.setInt(14, dbParams.hasMode() ? dbParams.getMode() : 0);
+
+                    if ( dbParams.isSymbolicLink())
+                        symLinkName = dbParams.getSymbolicLinkName();
+                }
+                else {
+                    pstmt.setLong(2, timeNow);         // CreateDate
+                    pstmt.setLong(3, timeNow);         // ModifyDate
+                    pstmt.setLong(4, timeNow);         // AccessDate
+
+                    pstmt.setLong( 5, 0);           // FileSize
+
+                    pstmt.setBoolean(16, false);    // Encrypted
+
+                    // Set the Unix fields
+                    if ( params instanceof UnixFileOpenParams) {
+                        UnixFileOpenParams unixParams = (UnixFileOpenParams) params;
+
+                        pstmt.setInt(12, unixParams.hasGid() ? unixParams.getGid() : 0);
+                        pstmt.setInt(13, unixParams.hasUid() ? unixParams.getUid() : 0);
+                        pstmt.setInt(14, unixParams.hasMode() ? unixParams.getMode() : 0);
+
+                        if ( unixParams.isSymbolicLink())
+                            symLinkName = unixParams.getSymbolicLinkName();
+                    }
+                    else {
+                        pstmt.setInt( 12, 0);   // GID
+                        pstmt.setInt( 13, 0);   // UID
+                        pstmt.setInt( 14, 0);   // Mode
+                    }
+                }
+
+                pstmt.setInt(6, dirId);
+                pstmt.setBoolean(7, params.isDirectory());
+                pstmt.setBoolean(8, FileAttribute.hasAttribute(params.getAttributes(), FileAttribute.ReadOnly));
+                pstmt.setBoolean(9, FileAttribute.hasAttribute(params.getAttributes(), FileAttribute.Archive));
+                pstmt.setBoolean(10, FileAttribute.hasAttribute(params.getAttributes(), FileAttribute.System));
+                pstmt.setBoolean(11, FileAttribute.hasAttribute(params.getAttributes(), FileAttribute.Hidden));
 
                 pstmt.setBoolean(15, params.isSymbolicLink());
 
@@ -569,14 +586,14 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                     }
 
                     // Check if the new file is a symbolic link
-                    if (params.isSymbolicLink()) {
+                    if (params.isSymbolicLink() && symLinkName != null) {
 
                         // Create the symbolic link record
                         String symSql = "INSERT INTO " + getSymLinksTableName() + " (FileId, SymLink) VALUES (?,?);";
 
                         try (PreparedStatement pstmt3 = conn.prepareStatement(symSql)) {
                             pstmt3.setInt(1, fileId);
-                            pstmt3.setString(2, params.getSymbolicLinkName());
+                            pstmt3.setString(2, symLinkName);
 
                             // DEBUG
                             if (Debug.EnableInfo && hasSQLDebug())
@@ -966,6 +983,15 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                 params.add(finfo.getCreationDateTime());
             }
 
+            // Check if the file encryption status has been set
+            if (finfo.hasSetFlag(FileInfo.SetEncrypted)) {
+
+                // Add the SQL to update the creation date/time
+                sql.append(" Encrypted = ");
+                sql.append( finfo.isEncrypted() ? "TRUE" : "FALSE");
+                sql.append(",");
+            }
+
             // Trim any trailing comma
             if (sql.charAt(sql.length() - 1) == ',')
                 sql.setLength(sql.length() - 1);
@@ -1329,6 +1355,9 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                                 // Check if the file is a symbolic link
                                 if (rs.getBoolean("IsSymLink"))
                                     finfo.setFileType(FileType.SymbolicLink);
+
+                                // Check if the file is encrypted
+                                finfo.setEncrypted(rs.getBoolean( "Encrypted"));
                                 break;
                         }
                     }
@@ -3738,9 +3767,9 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
     /**
      * To set the collected params values to PreparedStatement based on
      * index, type in case of dynamic condition queries
-     * @param ps
-     * @param params
-     * @throws SQLException
+     * @param ps PreparedStatement
+     * @param params List&lt;Object&gt;
+     * @throws SQLException Database error
      */
     public void setParams(PreparedStatement ps, List<Object> params) throws SQLException {
 

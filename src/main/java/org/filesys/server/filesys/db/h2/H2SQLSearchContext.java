@@ -119,6 +119,9 @@ public class H2SQLSearchContext extends DBSearchContext {
 
                 info.setMode(m_rs.getInt("Mode"));
 
+                // Set the encrypted flag
+                info.setEncrypted(m_rs.getBoolean( "Encrypted"));
+
                 // Check if the file is a symbolic link
                 if (m_rs.getBoolean("IsSymLink"))
                     info.setFileType(FileType.SymbolicLink);
