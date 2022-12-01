@@ -1338,6 +1338,11 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                                 if (rs.getBoolean("Directory")) {
                                     attr += FileAttribute.Directory;
                                     finfo.setFileType(FileType.Directory);
+
+                                    if ( finfo.getSize() == 0) {
+                                        finfo.setAllocationSize( 512L);
+                                        finfo.setSize( 512L);
+                                    }
                                 } else
                                     finfo.setFileType(FileType.RegularFile);
 

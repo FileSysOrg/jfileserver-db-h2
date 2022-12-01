@@ -96,6 +96,11 @@ public class H2SQLSearchContext extends DBSearchContext {
                 if (m_rs.getBoolean("Directory")) {
                     attr += FileAttribute.Directory;
                     info.setFileType(FileType.Directory);
+
+                    if ( info.getSize() == 0) {
+                        info.setAllocationSize( 512L);
+                        info.setSize( 512L);
+                    }
                 } else
                     info.setFileType(FileType.RegularFile);
 
