@@ -363,7 +363,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+           //     closeConnection(conn);
             }
         }
     }
@@ -420,7 +420,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+               // closeConnection(conn);
             }
         }
 
@@ -627,7 +627,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+             //   closeConnection(conn);
             }
         }
 
@@ -709,7 +709,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+              //  closeConnection(conn);
             }
         }
 
@@ -795,7 +795,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+            //    closeConnection(conn);
             }
         }
     }
@@ -846,7 +846,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+         //       closeConnection(conn);
             }
         }
     }
@@ -1024,7 +1024,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+         //       closeConnection(conn);
             }
         }
     }
@@ -1124,7 +1124,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+            //    closeConnection(conn);
             }
         }
     }
@@ -1220,7 +1220,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+              //  closeConnection(conn);
             }
         }
 
@@ -1379,7 +1379,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+         //       closeConnection(conn);
             }
         }
 
@@ -1899,7 +1899,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+          //      closeConnection(conn);
             }
         }
 
@@ -2385,7 +2385,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+             //   closeConnection(conn);
             }
         }
 
@@ -2469,7 +2469,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+           //     closeConnection(conn);
             }
         }
 
@@ -2526,7 +2526,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+          //      closeConnection(conn);
             }
         }
     }
@@ -2601,7 +2601,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+            //    closeConnection(conn);
             }
         }
 
@@ -2663,7 +2663,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+            //    closeConnection(conn);
             }
         }
 
@@ -2833,7 +2833,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+          //      closeConnection(conn);
             }
         }
 
@@ -2960,7 +2960,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+            //    closeConnection(conn);
             }
 
             // Close the output file
@@ -3054,7 +3054,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+         //       closeConnection(conn);
             }
 
             // Close the output file
@@ -3195,7 +3195,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+           //     closeConnection(conn);
             }
 
             // Close the input file
@@ -3297,7 +3297,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+          //      closeConnection(conn);
             }
         }
 
@@ -3358,7 +3358,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+           //     closeConnection(conn);
             }
         }
     }
@@ -3405,7 +3405,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+          //      closeConnection(conn);
             }
         }
     }
@@ -3472,7 +3472,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+         //       closeConnection(conn);
             }
         }
     }
@@ -3523,7 +3523,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+          //      closeConnection(conn);
             }
         }
 
@@ -3575,7 +3575,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+          //      closeConnection(conn);
             }
         }
     }
@@ -3628,7 +3628,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+          //      closeConnection(conn);
             }
         }
 
@@ -3677,7 +3677,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
             // Release the database connection
             if (conn != null) {
                 releaseConnection(conn);
-                closeConnection(conn);
+         //       closeConnection(conn);
             }
         }
     }
