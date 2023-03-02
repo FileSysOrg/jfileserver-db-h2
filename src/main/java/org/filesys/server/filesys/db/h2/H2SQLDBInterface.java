@@ -1952,13 +1952,10 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
                         m_reqStmt.setString(5, fileReq.getVirtualPath());
                         m_reqStmt.setString(6, fileReq.getAttributesString());
 
-                        recCnt = m_reqStmt.executeUpdate();
-
-                        // Retrieve the allocated sequence number
-                        if (recCnt > 0) {
+                        if ( m_reqStmt.executeUpdate() > 0) {
 
                             // Get the last insert id
-                            try (ResultSet rs2 = stmt.executeQuery("SELECT currval('" + getQueueTableName() + "_SeqNo_seq');")) {
+                            try (ResultSet rs2 = m_reqStmt.getGeneratedKeys()) {
                                 if (rs2.next())
                                     fileReq.setSequenceNumber(rs2.getInt(1));
                             }
