@@ -1831,7 +1831,7 @@ public class H2SQLDBInterface extends JdbcDBInterface implements DBQueueInterfac
 
             // Get a connection to the database
             conn = getConnection();
-            pStmt = conn.prepareStatement(sql.toString());
+            pStmt = conn.prepareStatement(sql.toString(), ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             setParams(pStmt, params);
 
